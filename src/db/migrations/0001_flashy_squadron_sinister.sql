@@ -1,0 +1,1 @@
+ALTER TABLE "project" ADD COLUMN "daily_expense" integer DEFAULT 50 NOT NULL;

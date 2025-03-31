@@ -1,6 +1,6 @@
 {
-  "id": "2bf14f2f-ea8e-4b63-9109-1d91dee4c37a",
-  "prevId": "74f75fe9-92ef-4fb1-a2ce-5fae34b8bbe6",
+  "id": "a2481e95-27ec-4095-be3d-84c828cb7f54",
+  "prevId": "f91fd67d-4460-42cf-aa11-e7446ed2a858",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -10,10 +10,9 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
         "account_id": {
           "name": "account_id",
@@ -29,7 +28,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -135,7 +134,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -150,6 +149,13 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "daily_expense": {
+          "name": "daily_expense",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 50
         },
         "created_at": {
           "name": "created_at",
@@ -230,7 +236,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -300,10 +306,9 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
         "expires_at": {
           "name": "expires_at",
@@ -343,7 +348,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         }
@@ -384,10 +389,9 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
         "name": {
           "name": "name",
@@ -448,10 +452,9 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
         "identifier": {
           "name": "identifier",

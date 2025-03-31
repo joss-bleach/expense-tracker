@@ -13,7 +13,7 @@ export const receipt = pgTable("receipt", {
   vendor: text("vendor"),
   totalAmount: integer("total_amount"),
   purchaseDate: timestamp("purchase_date"),
-  userId: uuid("user_id")
+  userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   projectId: uuid("project_id")
