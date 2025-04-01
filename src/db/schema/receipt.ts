@@ -5,6 +5,7 @@ import { project } from "./project";
 export const receipt = pgTable("receipt", {
   id: uuid("id").primaryKey().defaultRandom(),
   imageUrl: text("image_url").notNull(),
+  filePath: text("file_path").notNull(),
   status: text("status", {
     enum: ["pending", "processing", "processed", "failed"],
   })

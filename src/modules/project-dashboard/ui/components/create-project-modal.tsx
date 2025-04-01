@@ -7,7 +7,9 @@ import { toast } from "sonner";
 
 import { useCreateProject } from "@/modules/project-dashboard/hooks/use-create-project";
 import { createProjectSchema } from "@/modules/project-dashboard/schema/create-project";
+
 import { trpc } from "@/trpc/client";
+
 import { tryCatch } from "@/lib/utils";
 
 import {
@@ -39,6 +41,8 @@ import {
 type FormValues = z.infer<typeof createProjectSchema>;
 
 export const CreateProjectModal = () => {
+  const utils = trpc.useUtils();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(createProjectSchema),
     defaultValues: {
@@ -52,7 +56,11 @@ export const CreateProjectModal = () => {
 
   const { isOpen, close } = useCreateProject();
   const router = useRouter();
-  const createProject = trpc.project.create.useMutation();
+  const createProject = trpc.project.create.useMutation({
+    onSuccess: () => {
+      utils.project.getProjectsByUserId.invalidate();
+    },
+  });
 
   const handleSubmit = async (values: FormValues) => {
     const { data, error } = await tryCatch(

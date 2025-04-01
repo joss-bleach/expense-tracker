@@ -4,6 +4,7 @@ import {
   createProject,
   getProjectsByUserId,
   deleteProject,
+  getProjectById,
 } from "@/db/queries/project";
 import { z } from "zod";
 
@@ -28,5 +29,12 @@ export const projectProcedures = {
     .mutation(async ({ input }) => {
       const [deletedProject] = await deleteProject({ id: input.id });
       return deletedProject;
+    }),
+
+  getProjectById: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ input }) => {
+      const [project] = await getProjectById({ id: input.id });
+      return project;
     }),
 };

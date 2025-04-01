@@ -1,0 +1,1 @@
+ALTER TABLE "receipt" ADD COLUMN "file_path" text NOT NULL;

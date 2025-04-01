@@ -1,9 +1,9 @@
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useCallback } from "react";
 
-export const useCreateProject = () => {
+export const useUploadReceipt = () => {
   const [isOpen, setIsOpen] = useQueryState(
-    "new-project",
+    "upload-receipt",
     parseAsBoolean.withDefault(false).withOptions({ clearOnDefault: true }),
   );
 

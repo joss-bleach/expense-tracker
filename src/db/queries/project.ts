@@ -40,3 +40,7 @@ export async function getProjectsByUserId({ userId }: { userId: string }) {
 export async function deleteProject({ id }: { id: string }) {
   return await db.delete(project).where(eq(project.id, id)).returning();
 }
+
+export async function getProjectById({ id }: { id: string }) {
+  return await db.select().from(project).where(eq(project.id, id));
+}
