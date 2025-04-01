@@ -27,3 +27,31 @@ export async function tryCatch<T, E = Error>(
     return { data: null, error: error as E };
   }
 }
+
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: "GBP",
+  }).format(amount);
+}
+
+export function calculateWorkingDays(
+  startDate: Date,
+  endDate: Date,
+  restDays: number,
+): number {
+  const totalDays = Math.ceil(
+    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+  );
+  return totalDays - restDays;
+}
+
+export function calculateTotalBudget(
+  dailyExpense: number,
+  startDate: Date,
+  endDate: Date,
+  restDays: number,
+): number {
+  const workingDays = calculateWorkingDays(startDate, endDate, restDays);
+  return dailyExpense * workingDays;
+}

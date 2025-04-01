@@ -36,3 +36,7 @@ export async function createProject({
 export async function getProjectsByUserId({ userId }: { userId: string }) {
   return await db.select().from(project).where(eq(project.userId, userId));
 }
+
+export async function deleteProject({ id }: { id: string }) {
+  return await db.delete(project).where(eq(project.id, id)).returning();
+}

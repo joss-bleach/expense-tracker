@@ -1,6 +1,11 @@
 import { protectedProcedure } from "@/trpc/init";
 import { createProjectSchema } from "../schema/create-project";
-import { createProject, getProjectsByUserId } from "@/db/queries/project";
+import {
+  createProject,
+  getProjectsByUserId,
+  deleteProject,
+} from "@/db/queries/project";
+import { z } from "zod";
 
 export const projectProcedures = {
   create: protectedProcedure
@@ -17,4 +22,11 @@ export const projectProcedures = {
   getProjectsByUserId: protectedProcedure.query(async ({ ctx }) => {
     return await getProjectsByUserId({ userId: ctx.user.id });
   }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ input }) => {
+      const [deletedProject] = await deleteProject({ id: input.id });
+      return deletedProject;
+    }),
 };
