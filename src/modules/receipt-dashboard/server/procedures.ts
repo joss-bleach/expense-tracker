@@ -3,6 +3,7 @@ import {
   createReceipt,
   getReceiptsByProjectIdAndUserId,
 } from "@/db/queries/receipt";
+import { scanAndUpdateReceiptsTask } from "@/trigger/scan-and-update-receipts";
 import { z } from "zod";
 
 export const receiptProcedures = {
@@ -22,6 +23,16 @@ export const receiptProcedures = {
         ...input,
         userId: ctx.user.id,
       });
+
+      // Trigger the receipt scanning task from the server
+      try {
+        await scanAndUpdateReceiptsTask.trigger({
+          receiptId: newReceipt.id,
+          filePath: newReceipt.filePath,
+        });
+      } catch (error) {
+        console.error("Failed to trigger receipt scanning:", error);
+      }
 
       return newReceipt;
     }),
