@@ -9,6 +9,16 @@ type CreateReceiptInput = {
   filePath: string;
   status: "pending" | "processing" | "processed" | "failed";
 };
+
+type UpdateReceiptInput = {
+  id: string;
+  vendor?: string;
+  totalAmount?: number;
+  purchaseDate?: Date;
+  status?: "pending" | "processing" | "processed" | "failed";
+  rawText?: string;
+};
+
 export async function createReceipt({
   imageUrl,
   projectId,
@@ -27,6 +37,28 @@ export async function createReceipt({
       createdAt: new Date(),
       updatedAt: new Date(),
     })
+    .returning();
+}
+
+export async function updateReceipt({
+  id,
+  vendor,
+  totalAmount,
+  purchaseDate,
+  status,
+  rawText,
+}: UpdateReceiptInput) {
+  return await db
+    .update(receipt)
+    .set({
+      vendor,
+      totalAmount,
+      purchaseDate,
+      status,
+      rawText,
+      updatedAt: new Date(),
+    })
+    .where(eq(receipt.id, id))
     .returning();
 }
 
