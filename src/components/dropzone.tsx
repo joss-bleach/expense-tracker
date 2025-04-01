@@ -15,6 +15,8 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { trpc } from "@/trpc/client";
 import { useUploadReceipt } from "@/modules/receipt-dashboard/hooks/use-upload-receipt";
+import { inngest } from "@/lib/inngest/client";
+import { EXTRACT_FROM_RECEIPT_AND_SAVE_TO_DB } from "@/lib/inngest/constants";
 
 const supabase = createClient();
 
@@ -113,9 +115,29 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 
   const utils = trpc.useUtils();
   const createReceipt = trpc.receipt.create.useMutation({
-    onSuccess: () => {
+    onSuccess: async (data) => {
       utils.receipt.getReceiptsByProjectIdAndUserId.invalidate({ projectId });
       toast.success("Receipt uploaded successfully");
+
+      try {
+        const response = await fetch("/api/inngest/send", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            url: data.filePath,
+            id: data.id,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to send to Inngest");
+        }
+      } catch (error) {
+        console.error("Failed to send to Inngest:", error);
+      }
+
       handleRemoveFile(files[0].name);
       close();
       setFiles([]);
@@ -132,10 +154,15 @@ const DropzoneContent = ({ className }: { className?: string }) => {
         .from("receipts")
         .getPublicUrl(`${projectId}/${file.name}`);
 
+      // Clean the URL by removing any trailing slashes
+      const cleanUrl = data.publicUrl.replace(/\/+$/, "");
+      console.log("Original Supabase URL:", data.publicUrl);
+      console.log("Cleaned URL for database:", cleanUrl);
+
       createReceipt.mutate({
         projectId,
         imageUrl: file.name,
-        filePath: data.publicUrl,
+        filePath: cleanUrl,
         status: "pending",
       });
     }

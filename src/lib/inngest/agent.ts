@@ -1,13 +1,13 @@
 import {
   createNetwork,
   openai,
+  anthropic,
   getDefaultRoutingAgent,
   type Network,
 } from "@inngest/agent-kit";
 import { createServer } from "@inngest/agent-kit/server";
 
 import { inngest } from "@/lib/inngest/client";
-
 import { EXTRACT_FROM_RECEIPT_AND_SAVE_TO_DB } from "./constants";
 
 import { databaseAgent } from "./agents/database-agent";
@@ -21,10 +21,10 @@ type NetworkState = {
 const agentNetwork = createNetwork({
   name: "Scanning Agents",
   agents: [databaseAgent, receiptScanAgent],
-  defaultModel: openai({
-    model: "gpt-4o-mini",
+  defaultModel: anthropic({
+    model: "claude-3-5-sonnet-latest",
     defaultParameters: {
-      max_completion_tokens: 1000,
+      max_tokens: 1000,
     },
   }),
   defaultRouter: ({ network }: { network: Network<NetworkState> }) => {
@@ -41,20 +41,20 @@ export const extractAndSave = inngest.createFunction(
   { id: "Extract from receipt" },
   { event: EXTRACT_FROM_RECEIPT_AND_SAVE_TO_DB },
   async ({ event }) => {
-    `Extract the key information from this receipt ${event.data.url}. We want the name of the establishment, the date, the total amount spent, and the individual items. You should format it in the following way:
-    {
-        establishment: xxx,
-        date: xxx,
-        total amount: xxx
-        items: [
-            {
-            name: xxx,
-            quantity (if applicable): xxx
-            price: xxx
-        }
-        ]
-    }
-    Once the information has successfully been extracted, and saved to the database, you can terminate the agent.
-    `;
+    const { url, id } = event.data;
+    console.log("Using URL:", url);
+
+    // Run the network with a structured input
+    return await agentNetwork.run(
+      JSON.stringify({
+        type: "process-receipt",
+        data: {
+          filePath: url,
+          id,
+          status: "pending",
+          updatedAt: new Date(),
+        },
+      }),
+    );
   },
 );

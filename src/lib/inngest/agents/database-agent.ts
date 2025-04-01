@@ -13,13 +13,15 @@ const saveToDatabaseTool = createTool({
       .string()
       .describe("The path to the receipt file in our Supabase storage"),
     status: z
-      .string()
+      .enum(["pending", "processing", "processed", "failed"])
       .describe(
         "The status of the receipt. Before and whilst you are running, it should be pending, once you are ready to save it should be processed",
       ),
     vendor: z.string().describe("The name of the establishment/vendor"),
     totalAmount: z.string().describe("The total amount spent on the receipt"),
-    purchaseDate: z.date().describe("The date of the receipt"),
+    purchaseDate: z
+      .string()
+      .describe("The date of the receipt in ISO 8601 format"),
     userId: z
       .string()
       .describe(
@@ -30,42 +32,24 @@ const saveToDatabaseTool = createTool({
       .describe(
         "The raw text of the receipt. This should be the JSON output of the receipt scan agent",
       ),
-    createdAt: z.date(),
-    updatedAt: z.date().describe("This should be the current date and time"),
   }),
-  handler: async (params, context) => {
-    const { id, vendor, totalAmount, purchaseDate, rawText } = params;
+  handler: async (params, { step }) => {
+    try {
+      const result = await step?.run("save-to-database", async () => {
+        return await updateReceipt({
+          id: params.id,
+          vendor: params.vendor,
+          totalAmount: parseInt(params.totalAmount),
+          purchaseDate: new Date(params.purchaseDate),
+          rawText: params.rawText,
+          status: params.status,
+        });
+      });
 
-    const result = await context.step?.run("save-to-database", async () => {
-      const { data, error } = await tryCatch(
-        updateReceipt({
-          id,
-          vendor,
-          totalAmount: parseInt(totalAmount),
-          purchaseDate,
-          status: "processed",
-          rawText,
-        }),
-      );
-
-      if (data) {
-        return {
-          savedToDatabase: true,
-          id,
-          vendor,
-          totalAmount,
-          purchaseDate,
-          rawText,
-        };
-      } else {
-        context.network.state.data.savedToDatabase = false;
-        context.network.state.data.receiptId = undefined;
-      }
-    });
-
-    if (result?.savedToDatabase) {
-      context.network.state.data.savedToDatabase = true;
-      context.network.state.data.receiptId = result.id;
+      return result;
+    } catch (err) {
+      console.error("Error in saveToDatabaseTool:", err);
+      throw new Error(err as any);
     }
   },
 });
@@ -73,10 +57,17 @@ const saveToDatabaseTool = createTool({
 export const databaseAgent = createAgent({
   name: "Database agent",
   description: "Responsible for saving the receipt information to the database",
-  system:
-    "You are a helpful assistant that takes the key receipt information and saves it to our Supabase database. You should use Drizzle when interacting with the database.",
+  system: `You are a helpful assistant that saves the receipt information to the database. You are tasked with:
+    - Saving the vendor name
+    - Saving the total amount spent on the receipt
+    - Saving the purchase date
+    - Saving the raw text of the receipt
+    - Saving the status of the receipt
+    Ensure all dates are in ISO 8601 format
+    Ensure all amounts are in GBP
+    `,
   model: openai({
-    model: "gpt-4o-mini",
+    model: "gpt-4-turbo-preview",
     defaultParameters: {
       max_completion_tokens: 1000,
     },
