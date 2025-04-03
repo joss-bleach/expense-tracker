@@ -14,21 +14,25 @@ export const receiptProcedures = {
         projectId: z.string().uuid(),
         filePath: z.string(),
         status: z
-          .enum(["pending", "processing", "processed", "failed"])
-          .default("pending"),
+          .enum(["created", "analysing", "complete", "failed"])
+          .default("created"),
+        rawJson: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      console.log("Creating receipt with input:", input);
+
       const [newReceipt] = await createReceipt({
         ...input,
         userId: ctx.user.id,
       });
 
-      // Trigger the receipt scanning task from the server
+      console.log("Created receipt:", newReceipt);
+
       try {
         await scanAndUpdateReceiptsTask.trigger({
           receiptId: newReceipt.id,
-          filePath: newReceipt.filePath,
+          rawJson: input.rawJson || "",
         });
       } catch (error) {
         console.error("Failed to trigger receipt scanning:", error);

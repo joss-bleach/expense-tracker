@@ -7,7 +7,8 @@ type CreateReceiptInput = {
   projectId: string;
   userId: string;
   filePath: string;
-  status: "pending" | "processing" | "processed" | "failed";
+  status: "created" | "analysing" | "complete" | "failed";
+  rawJson?: string;
 };
 
 type UpdateReceiptInput = {
@@ -15,8 +16,8 @@ type UpdateReceiptInput = {
   vendor?: string;
   totalAmount?: number;
   purchaseDate?: Date;
-  status?: "pending" | "processing" | "processed" | "failed";
-  rawText?: string;
+  status?: "created" | "analysing" | "complete" | "failed";
+  rawJson?: string;
 };
 
 export async function createReceipt({
@@ -25,6 +26,7 @@ export async function createReceipt({
   userId,
   filePath,
   status,
+  rawJson,
 }: CreateReceiptInput) {
   return await db
     .insert(receipt)
@@ -34,6 +36,7 @@ export async function createReceipt({
       userId,
       filePath,
       status,
+      rawJson,
       createdAt: new Date(),
       updatedAt: new Date(),
     })
@@ -46,7 +49,7 @@ export async function updateReceipt({
   totalAmount,
   purchaseDate,
   status,
-  rawText,
+  rawJson,
 }: UpdateReceiptInput) {
   return await db
     .update(receipt)
@@ -55,7 +58,7 @@ export async function updateReceipt({
       totalAmount,
       purchaseDate,
       status,
-      rawText,
+      rawJson,
       updatedAt: new Date(),
     })
     .where(eq(receipt.id, id))

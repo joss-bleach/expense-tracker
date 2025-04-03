@@ -2,6 +2,7 @@
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { FileIcon, Loader2Icon } from "lucide-react";
+import { format } from "date-fns";
 
 import { trpc } from "@/trpc/client";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -41,6 +42,8 @@ const ReceiptsSectionSuspense = ({ projectId }: { projectId: string }) => {
         <TableHeader>
           <TableRow>
             <TableHead>Receipt</TableHead>
+            <TableHead>Vendor</TableHead>
+            <TableHead>Date</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Amount</TableHead>
           </TableRow>
@@ -59,17 +62,30 @@ const ReceiptsSectionSuspense = ({ projectId }: { projectId: string }) => {
                   {receipt.imageUrl}
                 </a>
               </TableCell>
+              <TableCell>{receipt.vendor || "-"}</TableCell>
+              <TableCell>
+                {receipt.purchaseDate
+                  ? format(new Date(receipt.purchaseDate), "dd MMM yyyy")
+                  : "-"}
+              </TableCell>
               <TableCell>
                 <Badge
                   variant={
-                    receipt.status === "pending" ? "secondary" : "default"
+                    receipt.status === "created" ||
+                    receipt.status === "analysing"
+                      ? "secondary"
+                      : "default"
                   }
                   className={cn(
                     "flex items-center gap-1",
-                    receipt.status === "pending" ? "animate-pulse" : "",
+                    receipt.status === "created" ||
+                      receipt.status === "analysing"
+                      ? "animate-pulse"
+                      : "",
                   )}
                 >
-                  {receipt.status === "pending" && (
+                  {(receipt.status === "created" ||
+                    receipt.status === "analysing") && (
                     <Loader2Icon className="size-4 animate-spin" />
                   )}
                   {receipt.status}
@@ -77,7 +93,7 @@ const ReceiptsSectionSuspense = ({ projectId }: { projectId: string }) => {
               </TableCell>
               <TableCell className="text-right">
                 {receipt.totalAmount
-                  ? formatCurrency(receipt.totalAmount)
+                  ? formatCurrency(receipt.totalAmount / 100)
                   : "-"}
               </TableCell>
             </TableRow>
@@ -95,6 +111,8 @@ const ReceiptsSectionLoading = () => {
         <TableHeader>
           <TableRow>
             <TableHead>Receipt</TableHead>
+            <TableHead>Vendor</TableHead>
+            <TableHead>Date</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Amount</TableHead>
           </TableRow>
@@ -107,6 +125,12 @@ const ReceiptsSectionLoading = () => {
                   <div className="h-4 w-4 animate-pulse rounded-md bg-gray-200" />
                   <div className="h-4 w-48 animate-pulse rounded-md bg-gray-200" />
                 </div>
+              </TableCell>
+              <TableCell>
+                <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
+              </TableCell>
+              <TableCell>
+                <div className="h-4 w-24 animate-pulse rounded-md bg-gray-200" />
               </TableCell>
               <TableCell>
                 <div className="h-5 w-20 animate-pulse rounded-full bg-gray-200" />

@@ -1,0 +1,1 @@
+ALTER TABLE "receipt" ALTER COLUMN "status" SET DEFAULT 'created';

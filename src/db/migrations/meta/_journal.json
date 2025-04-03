@@ -22,6 +22,34 @@
       "when": 1743504986690,
       "tag": "0002_talented_king_cobra",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1743539488520,
+      "tag": "0003_ordinary_mulholland_black",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1743610914497,
+      "tag": "0004_white_blazing_skull",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1743611331330,
+      "tag": "0005_worried_kate_bishop",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1743621875595,
+      "tag": "0006_special_edwin_jarvis",
+      "breakpoints": true
     }
   ]
 }

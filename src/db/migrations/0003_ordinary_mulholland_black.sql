@@ -1,0 +1,1 @@
+ALTER TABLE "receipt" DROP COLUMN "raw_text";

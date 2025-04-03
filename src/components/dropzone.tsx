@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { trpc } from "@/trpc/client";
 import { useUploadReceipt } from "@/modules/receipt-dashboard/hooks/use-upload-receipt";
+import { createWorker } from "tesseract.js";
 
 const supabase = createClient();
 
@@ -115,6 +116,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
   const createReceipt = trpc.receipt.create.useMutation({
     onSuccess: async (data) => {
       utils.receipt.getReceiptsByProjectIdAndUserId.invalidate({ projectId });
+      utils.project.getProjectById.invalidate({ id: projectId });
       toast.success("Receipt uploaded successfully");
 
       handleRemoveFile(files[0].name);
@@ -127,24 +129,82 @@ const DropzoneContent = ({ className }: { className?: string }) => {
   });
 
   useEffect(() => {
-    if (isSuccess && files.length > 0) {
-      const file = files[0];
-      const { data } = supabase.storage
-        .from("receipts")
-        .getPublicUrl(`${projectId}/${file.name}`);
+    const processOCR = async () => {
+      if (isSuccess && files.length > 0) {
+        const file = files[0];
 
-      // Clean the URL by removing any trailing slashes
-      const cleanUrl = data.publicUrl.replace(/\/+$/, "");
-      console.log("Original Supabase URL:", data.publicUrl);
-      console.log("Cleaned URL for database:", cleanUrl);
+        try {
+          // Show processing toast
+          const toastId = toast.loading("Processing receipt text...");
 
-      createReceipt.mutate({
-        projectId,
-        imageUrl: file.name,
-        filePath: cleanUrl,
-        status: "pending",
-      });
-    }
+          // Create Tesseract worker
+          const worker = await createWorker("eng");
+
+          // Process the image directly from the file
+          const {
+            data: { text },
+          } = await worker.recognize(file);
+
+          // Terminate worker
+          await worker.terminate();
+
+          // Log OCR output for debugging
+          console.log("OCR Output:", text);
+
+          // Get the Supabase URL for storage
+          const { data } = supabase.storage
+            .from("receipts")
+            .getPublicUrl(`${projectId}/${file.name}`);
+          const cleanUrl = data.publicUrl.replace(/\/+$/, "");
+
+          // Create receipt with OCR data
+          console.log("Creating receipt with data:", {
+            projectId,
+            imageUrl: file.name,
+            filePath: cleanUrl,
+            status: "processed",
+            rawJson: text,
+          });
+
+          createReceipt.mutate({
+            projectId,
+            imageUrl: file.name,
+            filePath: cleanUrl,
+            status: "created",
+            rawJson: text,
+          });
+
+          toast.success("Receipt processed successfully", { id: toastId });
+        } catch (error) {
+          console.error("OCR processing failed:", error);
+          // Get the Supabase URL for storage
+          const { data } = supabase.storage
+            .from("receipts")
+            .getPublicUrl(`${projectId}/${file.name}`);
+          const cleanUrl = data.publicUrl.replace(/\/+$/, "");
+
+          // Create receipt without OCR data if processing fails
+          console.log("Creating receipt with failed status:", {
+            projectId,
+            imageUrl: file.name,
+            filePath: cleanUrl,
+            status: "failed",
+            rawJson: "",
+          });
+
+          createReceipt.mutate({
+            projectId,
+            imageUrl: file.name,
+            filePath: cleanUrl,
+            status: "failed",
+            rawJson: "",
+          });
+          toast.error("Failed to process receipt text");
+        }
+      }
+    };
+
+    processOCR();
   }, [isSuccess, files, projectId]);
 
   const exceedMaxFiles = files.length > maxFiles;
